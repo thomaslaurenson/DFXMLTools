@@ -4,7 +4,7 @@ MakeXML.py
 Description: Make DFXML from files or file_objects
 Author: Thomas Laurenson
 Website: thomaslaurenson.com
-Date: 19/05/2013
+Date: 27/05/2013
 
 Functionality:
 Takes files and print output in DFXML format

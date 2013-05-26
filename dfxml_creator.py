@@ -3,7 +3,7 @@
 dfxml_creator.py
 Author: Thomas Laurenson
 Website: thomaslaurenson.com
-Date: 03/04/2013
+Date: 27/05/2013
 
 Functionality:
 Produce dfxml output of directories and/or files. Creates fileobjects for each file encountered, and can output the following properties:
@@ -18,11 +18,6 @@ Rewritten for Python 3 with various usability changes.
 
 CHANGELOG:
 0.1 --- Base functionality (alpha)
-
-TODO:
-*** Test Hashing: MD5, SHA1, piecewise (use hashdeep tool)
-*** Check script on Linux
-
 """
 
 import os, sys

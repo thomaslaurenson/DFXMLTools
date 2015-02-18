@@ -56,6 +56,7 @@ import hashlib
 import datetime
 import platform
 
+sys.path.append(r'../dfxml/python')
 try:
     import Objects
 except ImportError:

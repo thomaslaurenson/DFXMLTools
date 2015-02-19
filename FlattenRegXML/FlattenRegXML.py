@@ -1,3 +1,40 @@
+#!/usr/bin/env python3
+
+"""
+Author:  Thomas Laurenson
+Email:   thomas@thomaslaurenson.com
+Website: thomaslaurenson.com
+Date:    2015/02/19
+
+Description:
+HiveExtractor.py is a script to extract Windows Registry hive files from
+a target forensic image (evidence file) using a DFXML report generated
+by the fiwalk program. Two outputs are produced:
+1) Directory of extracted hive files
+2) DFXML report of file system and file metadata for extracted hive files
+
+Copyright (c) 2015, Thomas Laurenson
+
+###############################################################################
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+###############################################################################
+
+>>> CHANGELOG:
+    0.1.0       Base functionality
+
+"""
+
 import os
 import sys
 sys.path.append(r'../dfxml/python')

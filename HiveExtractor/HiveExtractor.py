@@ -51,10 +51,12 @@ __version__ = "0.1.0"
 
 import sys
 import os
+import io
 import shutil
 import hashlib
 import datetime
 import platform
+import xml.dom.minidom
 
 sys.path.append(r'../dfxml/python')
 try:
@@ -67,10 +69,11 @@ except ImportError:
 
 ################################################################################
 class HiveExtractor:
-    def __init__(self, imagefile=None, xmlfile=None, outputdir=None):
+    def __init__(self, imagefile=None, xmlfile=None, outputdir=None, allocated=False):
         self.imagefile = imagefile
         self.xmlfile = xmlfile
         self.outputdir = outputdir
+        self.allocated = allocated
         self.hives = list()
         self.target_fi_count = 0
 
@@ -107,24 +110,28 @@ class HiveExtractor:
                       'local settings/application data/microsoft/windows/usrclass.dat']
         # Find hive files using file name matching from fiwalk DFXML output
         for hive_name in hive_names:
-            if fn.endswith(hive_name):
-                # Set the output file name
-                out_fn = fn + '.hive'
-                out_fn = out_fn.replace('/','-').replace(' ','-')
-                out_fpath = os.path.join(self.outputdir, out_fn)
-                # Open output file and write file contents
-                with open(out_fpath, 'wb') as f:
-                    contents = fi.byte_runs.iter_contents(self.imagefile)
-                    contents = b"".join(contents)
-                    f.write(contents)
-                f.close()
-                # Check the SHA-1 of fileobject VS extracted hive
-                if fi.sha1 is not None:
-                    sha1 = self.sha1_file(out_fpath)
-                    if sha1 != fi.sha1:
-                        print("    Warning: SHA-1 hash mismatch for: %s" % os.path.basename(out_fpath))
-                # Add extracted hive file to 'hives' list
-                self.hives.append(fi)
+            if fn.endswith(hive_name) and (self.allocated and fi.is_allocated()):
+                self.extract(fi)
+            elif not allocated and fn.endswith(hive_name):
+                self.extract(fi)
+
+    def extract(self, fi):
+        out_fn = fi.filename + '.hive'
+        out_fn = out_fn.replace('/','-').replace(' ','-')
+        out_fpath = os.path.join(self.outputdir, out_fn)
+        # Open output file and write file contents
+        with open(out_fpath, 'wb') as f:
+            contents = fi.byte_runs.iter_contents(self.imagefile)
+            contents = b"".join(contents)
+            f.write(contents)
+        f.close()
+        # Check the SHA-1 of fileobject VS extracted hive
+        if fi.sha1 is not None:
+            sha1 = self.sha1_file(out_fpath)
+            if sha1 != fi.sha1:
+                print("    Warning: SHA-1 hash mismatch for: %s" % os.path.basename(out_fpath))
+        # Add extracted hive file to 'hives' list
+        self.hives.append(fi)
 
     def sha1_file(self, fi):
         """ Helper method to calculate SHA-1 hash of extracted hive file. """
@@ -146,9 +153,17 @@ class HiveExtractor:
               "os_host" : platform.node(),
               "os_arch" : platform.machine()}
         dfxml = Objects.DFXMLObject(command_line = " ".join(sys.argv),
-                                    sources = [self.imagefile, self.xmlfile],
+                                    sources = [self.imagefile],
                                     dc = dc,
                                     files = self.hives)
+        # Write a temp DFXML file, format it, then write to logfile
+        temp_fi = io.StringIO(dfxml.to_dfxml())
+        xml_fi = xml.dom.minidom.parse(temp_fi)
+        report_fn = os.path.splitext(os.path.basename(self.imagefile))[0] + ".xml"
+        report_fn = os.path.join(self.outputdir, report_fn)
+        print("\n>>> DFXML Report: %s\n" % report_fn)
+        with open(report_fn, 'w') as f:
+            f.write(xml_fi.toprettyxml(indent="  "))
 
 ################################################################################
 if __name__=='__main__':
@@ -163,12 +178,15 @@ by the fiwalk program. Two outputs are produced:
     parser.add_argument("imagefile",
                         help = "Target disk image (e.g. target.E01)")
     parser.add_argument('outputdir',
-                        action = 'store',
                         help = 'Output directory')
     parser.add_argument("--dfxml",
                         metavar = 'DFXML',
                         action = 'store',
                         help = "Previously generated DFXML report output from the fiwalk tool (e.g. target.dfxml)")
+    parser.add_argument("-a",
+                        help = "Only extract allocated hive files",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-z",
                         help = "Zap (delete) the output directory if it exists",
                         action = "store_true",
@@ -179,6 +197,7 @@ by the fiwalk program. Two outputs are produced:
     imagefile = args.imagefile
     outputdir = args.outputdir
     xmlfile = args.dfxml
+    allocated = args.a
     zapdir = args.z
 
     # Make output directory
@@ -206,7 +225,8 @@ by the fiwalk program. Two outputs are produced:
     print(">>> EXTRACTING REGISTRY HIVES")
     print("    -------------------------")
     he = HiveExtractor(imagefile = imagefile,
-                          xmlfile = xmlfile,
-                          outputdir = outputdir)
+                       xmlfile = xmlfile,
+                       outputdir = outputdir,
+                       allocated = allocated)
     he.process_target()
     he.dfxml_report()

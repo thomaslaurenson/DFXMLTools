@@ -9,3 +9,5 @@ A selection of tools I have authored that use the DFXML forensic data abstractio
 * Dir2DFXML. Create a DFXML report from a local directory. (See: http://www.thomaslaurenson.com/dfxml-tools-create-dfxml-report-from-local-directory/)
 
 * SearchDFXML. Perform a keyword search on fileobjects from a DFXML report. (See: http://www.thomaslaurenson.com/dfxml-tools-create-dfxml-report-from-local-directory/)
+
+* DFXML2sha1deep. Convert a DFXML report to a sha1deep hashset format. (See: http://www.thomaslaurenson.com/dfxml-tools-convert-dfxml-report-to-sha1deep-hashset/)
